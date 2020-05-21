@@ -1,22 +1,34 @@
-class Taintable<T>(private val value: T, private var tainted: Boolean = false) {
+import java.io.Serializable
+
+sealed class Taintable<out T> : Serializable {
+    abstract operator fun component1(): T
+
+    class TaintedException : Exception("Attempted to use tainted object without acknowledging the risk!")
+
+    abstract fun get(): T
+
     companion object {
-        class TaintedException : Exception("Attempted to use tainted object in a secure context!")
+        fun <T> untainted(value: T): Taintable<T> = Untainted(value)
+        fun <T> tainted(value: T): Taintable<T> = Tainted(value)
     }
 
-    val isTainted: Boolean
-        get() = tainted
+    class Untainted<out T>(private val value: T) : Taintable<T>() {
+        override fun component1(): T = value
 
-    fun getInsecure(): T = value
+        override fun get(): T = value
 
-    fun get(): T = if (tainted) throw TaintedException() else value
-
-    fun orElse(other: T): T = if (tainted) other else value
-
-    fun taint() {
-        tainted = true
+        override fun toString(): String = value.toString()
     }
 
-    override fun toString(): String = if (tainted) throw TaintedException() else value.toString()
+    class Tainted<out T>(private val value: T) : Taintable<T>() {
+        override fun component1(): T = throw TaintedException()
+
+        override fun get(): T = throw TaintedException()
+        fun getDangerous(): T = value
+
+        override fun equals(other: Any?): Boolean = other is Tainted<*> && other.value == this.value
+        override fun hashCode(): Int = value.hashCode()
+
+        override fun toString(): String = throw TaintedException()
+    }
 }
-
-fun <T> T.toTaintable(taint: Boolean = false) = Taintable(this, taint)
