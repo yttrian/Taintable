@@ -1,0 +1,1 @@
+class TaintedException : Exception("Attempted to use tainted object without accepting the risk!")

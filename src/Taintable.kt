@@ -3,8 +3,6 @@ import java.io.Serializable
 sealed class Taintable<out T> : Serializable {
     abstract operator fun component1(): T
 
-    class TaintedException : Exception("Attempted to use tainted object without acknowledging the risk!")
-
     abstract fun get(): T
 
     companion object {

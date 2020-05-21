@@ -24,7 +24,7 @@ internal class TaintableTest {
     fun throwsOnDanger() {
         val tainted = Taintable.tainted("evil")
 
-        assertThrows<Taintable.TaintedException> {
+        assertThrows<TaintedException> {
             println("Hello $tainted")
         }
     }
